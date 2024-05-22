@@ -33,6 +33,7 @@ void Game::Initialize()
         windowWidth, windowHeight,
         0 //SDL_WINDOW_BORDERLESS
     );
+
     if (!window) {
         Logger::Err("Error creating SDL window.\n");
         return;
@@ -108,3 +109,6 @@ void Game::Destroy()
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
+
+// TODO list
+// - replace SDL by raylib

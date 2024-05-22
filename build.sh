@@ -1,3 +1,5 @@
+#/bin/bash
+
 set -xe
 
 FLAGS="-Wall -Wfatal-errors -std=c++17"
