@@ -1,5 +1,6 @@
 #include "ECS.hpp"
-#include "Logger/Logger.hpp"
+#include "../Logger/Logger.hpp"
+#include <cassert>
 
 int Entity::GetId() const {
     return id;
@@ -10,12 +11,38 @@ void System::AddEntity(Entity entity)
     entities.push_back(entity);
 }
 
+void System::RemoveEntity(size_t entityIndex)
+{
+    // NOTE: this is an unordered remove
+    int lastIndex = entities.size() - 1;   
+
+    Entity temp = entities[lastIndex];
+    entities[lastIndex] = entities[entityIndex];
+    entities[entityIndex] = temp;
+
+    entities.pop_back();
+}
+
 void System::RemoveEntity(const Entity& entity)
 {
-    int entityId = entity.GetId();
-    entities.erase(std::remove_if(entities.begin(), entities.end(), [entityId](Entity other) {
-        return entityId == other.GetId();
-    }), entities.end());
+    // NOTE: this is an unordered remove
+    int lastIndex = entities.size() - 1;
+    int targetIndex = -1;
+
+    for (size_t i = 0; i < entities.size(); i++) {
+        if (entities[i] == entity) {
+            targetIndex = i;
+            break;
+        }
+    }
+
+    assert(targetIndex != -1 && "The entity to be removed was not found!");
+
+    Entity temp = entities[lastIndex];
+    entities[lastIndex] = entity;
+    entities[targetIndex] = temp;
+
+    entities.pop_back();
 }
 
 const std::vector<Entity>& System::GetEntities() const
@@ -28,15 +55,3 @@ Signature System::GetComponentSignature() const
     return componentSignature;
 }
 
-Entity Registry::CreateEntity()
-{
-    int entityId = numEntities++;
-    Entity entity = Entity(entityId);
-    entitiesToBeAdded.insert(entity);
-    Logger::Log("Entity created with ID " + std::to_string(entityId));
-    return entity;
-}
-
-void Registry::Update()
-{
-}

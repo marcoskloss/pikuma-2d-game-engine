@@ -9,6 +9,8 @@
 
 const unsigned int MAX_COMPONENTS = 32;
 
+// To keep track of witch components an entity has,
+// also, to keep track witch entites a system is interested in.
 typedef std::bitset<MAX_COMPONENTS> Signature;
 
 struct IComponent {
@@ -16,6 +18,7 @@ struct IComponent {
         static int nextId;
 };
 
+// Used to assign a unique id to a component type
 template <typename T>
 class Component : public IComponent {
     public:
@@ -35,11 +38,11 @@ class Entity {
         int GetId() const;
 
         bool operator ==(const Entity& other) const {
-            return this->id == other.GetId();
+            return id == other.GetId();
         }
 
         bool operator !=(const Entity& other) const {
-            return this->id != other.GetId();
+            return id != other.GetId();
         }
 };
 
@@ -53,76 +56,20 @@ class System {
         ~System() = default;
 
         void AddEntity(Entity entity);
-        void RemoveEntity(const Entity& entity);
+        void RemoveEntity(Entity entity);
         const std::vector<Entity>& GetEntities() const;
         Signature GetComponentSignature() const;
+        void RemoveEntity(const Entity& entity);
+        void RemoveEntity(size_t entityIndex);
 
         template<typename T> void RequireComponent();
 };
 
-class IPool {
-    public:
-        virtual ~IPool() {}
-};
-
-template <typename T>
-class Pool : public IPool {
-    private:
-        std::vector<T> data;
-
-    public:
-        Pool(int size = 100) {
-            data.resize(size);
-        }
-        ~Pool() = default;
-
-        bool IsEmpty() const { return data.empty(); }
-
-        int GetSize() const { return data.size(); }
-
-        void Resize(int n) { data.resize(n); }
-
-        void Clear() { data.clear(); }
- 
-        void Set(int index, T obj) { data[index] = obj; }
-
-        T& Get(int index) { 
-            return static_cast<T&>(data[index]);
-        }
-};
-
-// Manages all the entities in the game scene, coordinates everything
-class Registry {
-    private:
-        int numEntities = 0;
-        // Each Pool contains all the data for a certain component type
-        // Vector index = component type id
-        // Pool index = entity id
-        std::vector<IPool*> componentPools;
-
-        // Vector of component signature per entity, saying which component is turned `on` for a given entity
-        // Vector index = entity id
-        std::vector<Signature> entityComponentSignatures;
-
-        std::unordered_map<std::type_index, System*> systems;
-
-        // Set of entities that are flagged to be added or removed in the next registry Update()
-        std::set<Entity> entitiesToBeAdded;
-        std::set<Entity> entitiesToBeKilled;
-
-    public:
-        Registry() = default;
-        void Update();
-        Entity CreateEntity();
-        void AddComponent();
-        void AddEntityToSystem(Entity entity);
-};
 
 template <typename T>
 void System::RequireComponent()
 {
-    const auto componentId = Component<T>::GetId();
-    printf("COMPONENT_ID: %d\n", componentId);
+    int componentId = Component<T>::GetId();
     componentSignature.set(componentId);
 }
 
