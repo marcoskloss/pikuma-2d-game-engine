@@ -65,6 +65,74 @@ class System {
         template<typename T> void RequireComponent();
 };
 
+class IPool {
+    public:
+        virtual ~IPool() {}
+};
+
+
+template <typename T>
+class Pool : public IPool {
+    private:
+        std::vector<T> data;
+
+    public:
+        Pool(int size = 100) {
+            data.resize(100);
+        }
+
+        virtual ~Pool() = default;
+
+        bool isEmpty() const { return data.empty(); }
+
+        int GetSize(int size) const { return data.size(); }
+
+        void Resize(int n) { data.resize(n); }
+
+        void Clear() { data.clear(); }
+
+        void Add(T obj) { data.push_back(obj); }
+
+        void Set(int index, T obj) { data[index] = obj; }
+
+        T Get(int index) const { return data[index]; }
+
+        T operator [](unsigned int index) { return data[index]; }
+};
+
+
+class Registry {
+    private:
+        int numEntities = 0;
+
+        // Each pool contains all the data for a certain component type
+        // Vector index = component type id
+        // Pool index = entity id
+        std::vector<IPool*> componentPools;
+
+        // component signatures per entity, saying which component is turned on for a given entity
+        // Vector index = entity id
+        std::vector<Signature> entityComponentSignatures;
+
+        std::unordered_map<std::type_index, System*> systems;
+
+    public:
+        Registry() = default;
+
+        // TODO
+        // CreateEntity()
+        // DestroyEntity()
+
+        // AddComponent(entity)
+        // RemoveComponent(entity)
+        // HasComponent(entity)
+        
+        // AddSystem()
+        // RemoveSystem()
+        // HasSystem()
+        // GetSystem()
+};
+
 
 template <typename T>
 void System::RequireComponent()
@@ -72,4 +140,6 @@ void System::RequireComponent()
     int componentId = Component<T>::GetId();
     componentSignature.set(componentId);
 }
+
+
 
